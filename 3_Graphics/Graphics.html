@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>그래픽스 파이프라인 학습 포트폴리오</title>
+
+  <style>
+    /* ===== 공통 스타일 (Network.html 테마 기반) ===== */
+    :root {
+      --bg: #0f1115;
+      --panel: #151924;
+      --card: #1b2030;
+      --text: #e6ebff;
+      --muted: #9ca3af;
+      --subtext: #9ca3af;
+      --accent: #7aa2ff;
+      --accent-soft: rgba(122,162,255,0.14);
+      --border: #272b3a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ===== 상단 글로벌 헤더 (공통 탭) ===== */
+    .global-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(
+        180deg,
+        rgba(5,6,16,0.96),
+        rgba(5,6,16,0.88),
+        transparent
+      );
+      border-bottom: 1px solid rgba(30,64,175,0.6);
+    }
+    .global-header-inner {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .global-header-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--subtext);
+    }
+    .global-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .global-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.95);
+      font-size: 13px;
+      color: var(--subtext);
+      text-decoration: none;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.05s ease;
+    }
+    .global-tab:hover {
+      border-color: var(--accent);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+    .global-tab.active {
+      background: var(--accent);
+      color: #020617;
+      border-color: transparent;
+    }
+    @media (max-width: 720px) {
+      .global-header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+
+    /* ===== 사이드바 / 페이지 레이아웃 (기존 Graphics 전용) ===== */
+    .page {
+      max-width: 1500px; /* 너비 조금 넓힘 */
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    /* ===== 사이드바 ===== */
+    aside {
+      position: sticky;
+      top: 16px;
+      align-self: flex-start;
+    }
+
+    .sidebar-card {
+      background: linear-gradient(145deg, #181b24, #101320);
+      border-radius: 18px;
+      padding: 18px 16px 16px;
+      border: 1px solid rgba(122,162,255,0.5);
+      box-shadow: 0 18px 45px rgba(15,23,42,0.85);
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #9ca3ff;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-main {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    nav.toc {
+      margin-top: 10px;
+    }
+    nav.toc ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 13px;
+    }
+    nav.toc li + li {
+      margin-top: 4px;
+    }
+    nav.toc a {
+      position: relative;
+      display: block;
+      padding-left: 14px;
+      color: var(--muted);
+    }
+    nav.toc a::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--accent);
+    }
+    nav.toc a:hover {
+      color: var(--accent);
+    }
+
+    .pipeline-flow {
+      margin: 8px 0 18px;
+      padding: 10px 12px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: linear-gradient(
+        90deg,
+        rgba(122,162,255,0.14),
+        rgba(21,25,36,0.9)
+      );
+      text-align: center;
+    }
+    .pipeline-flow span {
+      opacity: 0.85;
+    }
+
+    section {
+      margin-top: 20px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(122,162,255,0.45);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      background: radial-gradient(
+        circle at top left,
+        rgba(122,162,255,0.12),
+        rgba(15,23,42,0.92)
+      );
+      margin-bottom: 4px;
+    }
+    .pill span {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin: 0 0 6px;
+    }
+
+    p {
+      margin: 6px 0 8px;
+      font-size: 14px;
+    }
+
+    .section-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    main {
+      background:
+        radial-gradient(
+          circle at top left,
+          rgba(30,64,175,0.28),
+          transparent 55%
+        )
+          fixed,
+        linear-gradient(
+          160deg,
+          rgba(15,23,42,0.96),
+          rgba(2,6,23,0.99)
+        );
+      border-radius: 24px;
+      border: 1px solid rgba(39,45,70,0.9);
+      box-shadow: 0 26px 65px rgba(15,23,42,0.95);
+      padding: 22px 18px 26px; /* 좌우 패딩 조금 줄임 */
+    }
+
+    .grid-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 12px 13px;
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .card-header .label {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .badge {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 2px 7px;
+      border: 1px solid rgba(122,162,255,0.6);
+      color: #c7d2ff;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .card.diagram {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+        Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px; /* 조금 작게 */
+      white-space: pre;
+      background: radial-gradient(
+        circle at top left,
+        rgba(15,23,42,0.96),
+        rgba(9,11,20,0.98)
+      );
+      overflow-x: auto; /* 가로 스크롤 허용 */
+    }
+
+    /* 시각적 파이프라인 스트립 (3-2안) */
+    .pipeline-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      margin-bottom: 6px;
+      background: radial-gradient(
+        circle at top,
+        rgba(122,162,255,0.18),
+        rgba(15,23,42,0.96)
+      );
+    }
+
+    .pipeline-diagram .stage-box {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.8);
+      font-size: 12px;
+      background: rgba(15,23,42,0.9);
+      white-space: nowrap;
+    }
+
+    .pipeline-diagram .stage-arrow {
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    .myvoice {
+      font-size: 13px;
+      color: #e5e7ff;
+      border-left: 2px solid rgba(122,162,255,0.7);
+      padding-left: 10px;
+      margin: 8px 0;
+    }
+
+    .insight {
+      border: 1px solid rgba(122,162,255,0.6);
+      background: radial-gradient(
+        circle at top left,
+        rgba(122,162,255,0.2),
+        rgba(21,25,36,0.96)
+      );
+    }
+
+    .insight-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #c7d2ff;
+      margin-bottom: 4px;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .sub-note {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* GPT 로그 버튼 */
+    .doc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.9);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.05s ease;
+    }
+    .doc-btn:hover {
+      background: #ffffff;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      color: #000;
+    }
+
+    /* ===== 문서 뷰어 오버레이 ===== */
+    #doc-viewer-overlay {
+      position: fixed;
+      inset: 0;
+      display: none; /* 기본은 숨김 */
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    #doc-viewer-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    #doc-viewer-panel {
+      position: relative;
+      width: 90%;
+      height: 80%;
+      max-width: 1000px;
+      border-radius: 16px;
+      background: #020617;
+      border: 1px solid rgba(148,163,184,0.7);
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #doc-viewer-header {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(31,41,55,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: radial-gradient(
+        circle at top left,
+        rgba(15,23,42,0.95),
+        rgba(2,6,23,0.98)
+      );
+      font-size: 13px;
+    }
+    #doc-viewer-title {
+      font-weight: 500;
+    }
+    #doc-viewer-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+    }
+    #doc-viewer-close:hover {
+      color: #f97373;
+    }
+    #doc-viewer-body {
+      flex: 1;
+      position: relative;
+    }
+    #doc-viewer-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #020617;
+    }
+    #doc-viewer-fallback {
+      display: none;
+      height: 100%;
+      padding: 16px;
+      font-size: 14px;
+      color: var(--text);
+    }
+    #doc-viewer-fallback p {
+      margin: 8px 0;
+    }
+    #doc-viewer-fallback button {
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.9);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    #doc-viewer-fallback button:hover {
+      background: #ffffff;
+      color: #000;
+    }
+
+    @media (max-width: 960px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+      aside {
+        position: static;
+        order: -1;
+      }
+      main {
+        padding: 18px 14px 22px;
+      }
+      .grid-stage,
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="global-header">
+    <div class="global-header-inner">
+      <div class="global-header-title">CS Portfolio · Graphics Pipeline</div>
+      <nav class="global-tabs" aria-label="CS Portfolio Tabs">
+        <a class="global-tab" href="../index.html">Index</a>
+        <a class="global-tab" href="../1_Data_Structure/Data_Structure.html">자료구조</a>
+        <a class="global-tab" href="../2_Process/process.html">프로세스</a>
+        <a class="global-tab active" href="./Graphics.html">그래픽스</a>
+        <a class="global-tab" href="../4_Network/Network.html">네트워크</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page">
+    <!-- 사이드바: 타이틀 & 목차 -->
+    <aside>
+      <div class="sidebar-card">
+        <div class="sidebar-title">CS Portfolio</div>
+        <div class="sidebar-main">Graphics Pipeline</div>
+        <div class="sidebar-sub">
+          3D 그래픽스 파이프라인을 “사람이 세상을 바라보는 흐름”에 대응시켜 정리한 학습 기록.
+          Geometry → Shading → Depth &amp; Visibility → Output → Optimization 순서로 살펴본다.
+        </div>
+
+        <div class="pipeline-flow">
+          <span>
+            Geometry → Shading → Depth &amp; Visibility → Output → Optimization
+          </span>
+        </div>
+
+        <nav class="toc" aria-label="Graphics TOC">
+          <ol>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#geometry-stage">1. Geometry Stage</a></li>
+            <li><a href="#shading-stage">2. Shading Stage</a></li>
+            <li><a href="#depth-stage">3. Depth &amp; Visibility</a></li>
+            <li><a href="#output-stage">4. Output Stage</a></li>
+            <li><a href="#optimization-stage">5. Optimization</a></li>
+          </ol>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- 메인 콘텐츠 -->
+    <main>
+      <!-- Overview -->
+      <section id="overview">
+        <div class="pill"><span></span>Overview</div>
+        <h2>Direct3D 파이프라인을 한 줄로 요약하면?</h2>
+        <div class="card insight">
+          <div class="insight-title">핵심 인사이트</div>
+          <p>
+            3D 세계를 점과 삼각형으로 정리하고(Geometry), 빛으로 해석해 색을 입힌 뒤(Shading),
+            무엇이 실제로 보일 픽셀인지 정리하고(Depth &amp; Visibility),
+            완성된 프레임을 사용자에게 전달(Output)한 다음,
+            사람이 모르는 부분은 과감히 생략해서 비용을 줄이는 것(Optimization)이
+            그래픽스 파이프라인의 전체 흐름이다. 이 흐름은 결국 인간의 눈이 사물을 인식하는 과정을
+            하드웨어와 수학으로 흉내 내는 절차라고 볼 수 있다.
+          </p>
+        </div>
+        <p class="section-note">
+          아래 각 섹션은 <strong>① 핵심 요약 카드</strong>, <strong>② 시각 파이프라인 스트립</strong>,
+          <strong>③ 텍스트 다이어그램</strong>, <strong>④ ‘내 언어(myvoice)’ 카드</strong>로 구성되어 있다.
+          프로세스 문서와 마찬가지로, 교과서 정의 대신 “직접 이해한 방식”을 기록하는 데 집중했다.
+        </p>
+
+        <div class="two-column">
+          <div class="card">
+            <h3>이 문서의 목표</h3>
+            <p>
+              이 그래픽스 파트의 목표는 “Direct3D 파이프라인을 기계적으로 외우는 것”이 아니라,
+              <strong>Geometry → Shading → Depth → Output → Optimization</strong>이
+              왜 이 순서로 흘러가는지, 서로 어떤 관계인지, 그리고
+              “게임을 만들 때 어디를 건드려야 어떤 효과가 나는지”를
+              내 언어로 설명할 수 있게 되는 것이다.
+            </p>
+            <p>
+              특히, <strong>Geometry/Depth/Optimization</strong>은
+              GPU가 실제로 어떤 비용을 쓰는지와 밀접하게 묶여 있어
+              최적화 관점에서 중요하고, <strong>Shading/Output</strong>은
+              최종 화면 품질과 직접 연결된다. 이 문서는 이 둘을 하나의 흐름으로 묶어본 기록이다.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>학습 방식</h3>
+            <p>
+              Direct3D 관련 문서를 읽고, GPT와 질답을 반복한 뒤,
+              <strong>“내가 이해한 비유와 그림”</strong>을 중심으로 노트를 재구성했다.
+              오른쪽 문서 팝업에서 실제 Q&amp;A 로그를 함께 확인할 수 있다.
+            </p>
+            <p class="sub-note">
+              “내가 만든 게임에 이 개념을 적용한다면 어디를 손대야 할까?”를 계속 상상하며
+              질문을 던진 덕분에, 단순 이론이 아니라
+              <strong>“게임 클라이언트 프로그래머에게 필요한 그래픽스 이해”</strong>로 수렴하도록 유도했다.
+            </p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 14px;">
+          <div class="card-header">
+            <span class="label">Evidence</span>
+            <span class="badge">GPT Q&amp;A Session</span>
+          </div>
+          <p>
+            이 그래픽스 문서는 단순 이론 정리가 아니라, GPT와의 문답을 통해
+            개념을 반복해서 재정의한 결과물이다. 아래 버튼을 누르면 이 내용을 정리하는 데 사용한
+            실제 GPT 대화 로그를 팝업 형식으로 확인할 수 있다.
+          </p>
+          <button
+            class="doc-btn"
+            data-doc-src="./docs/graphics-gpt-log.pdf"
+          >
+            🔗 Direct3D 파이프라인 학습 Q&amp;A 열기
+          </button>
+        </div>
+      </section>
+
+      <!-- 1. Geometry -->
+      <section id="geometry-stage">
+        <div class="pill"><span></span>1. Geometry Stage</div>
+        <h2>Geometry — 3D 데이터를 ‘보일 수 있는 형태’로 정리하는 단계</h2>
+
+        <!-- 시각 파이프라인 스트립 -->
+        <div class="card pipeline-diagram">
+          <div class="stage-box">Vertex Buffer</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Vertex Shader (M·V·P)</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Clip &amp; Raster</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Screen Triangles</div>
+        </div>
+
+        <div class="grid-stage">
+          <div class="card">
+            <div class="card-header">
+              <span class="label">핵심 개념</span>
+              <span class="badge">Vertex · Index · Matrix</span>
+            </div>
+            <p>
+              Geometry Stage는 3D 세계의 점(버텍스)과 삼각형(폴리곤)을 입력받아,
+              카메라 기준으로 어디에, 어떤 모습으로 존재하는지를 수학적으로 정리하는 단계다.
+              인간의 시각으로 치면 “무엇이 어디에 있고 어떤 형태인지 윤곽을 잡는” 단계에 가깝다.
+            </p>
+            <ul>
+              <li><strong>버텍스 버퍼</strong>: GPU에 넘겨주는 점들의 모음 (한 번 올려두고 재사용).</li>
+              <li><strong>인덱스 버퍼</strong>: 버텍스를 어떤 순서로 이어서 삼각형을 만들지에 대한 정보.</li>
+              <li><strong>월드/뷰/프로젝션 행렬</strong>: 로컬→월드→카메라→스크린 좌표계 변환.</li>
+              <li><strong>클리핑/라스터라이즈</strong>: 보이는 영역만 남기고, 삼각형을 픽셀 단위로 쪼개는 단계.</li>
+            </ul>
+          </div>
+
+          <div class="card diagram">
+[Vertex Buffer] → [Vertex Shader] → [Clip/Rasterizer]
+     |                    |                 |
+     ▼                    ▼                 ▼
+ (Model Space)     (World/View/Proj)   (Screen Triangles)
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>내 언어로 정의하기</h3>
+          <p class="myvoice">
+            “GPU는 반복 작업에 특화된 자재가공 팀장이고, CPU는 공사장을 총괄 지휘하는 관리자다.
+            버텍스 버퍼는 ‘가공해야 할 자재 목록과 작업 지시서’다.
+            자재를 계속 실어나르는 대신, 자재가공팀(GPU) 옆에 버텍스 버퍼를 쌓아두고
+            한꺼번에 가공시키는 편이 훨씬 효율적이다.”
+          </p>
+          <p class="myvoice">
+            “현재 메쉬는 결국 버텍스(점)들의 집합이고, 삼각형은 그 점들을 이어 만든 최소 단위 벽돌이다.
+            예전 폴리곤이 각져 보였던 이유는 이 벽돌(삼각형) 수가 적어서
+            모서리 느낌을 지울 정도로 잘게 쪼갤 여유가 없었기 때문이다.”
+          </p>
+        </div>
+
+        <div class="card insight">
+          <div class="insight-title">한 줄 정리</div>
+          <p>Geometry는 데이터를 “화면에 그릴 수 있는 형태”로 정리해주는 준비 단계다.</p>
+        </div>
+      </section>
+
+      <!-- 2. Shading -->
+      <section id="shading-stage">
+        <div class="pill"><span></span>2. Shading Stage</div>
+        <h2>Shading — 표면을 ‘빛으로 해석하는 과정’</h2>
+
+        <!-- 시각 파이프라인 스트립 -->
+        <div class="card pipeline-diagram">
+          <div class="stage-box">Lights</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Normal &amp; Material</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Pixel Shader</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Final Color</div>
+        </div>
+
+        <div class="grid-stage">
+          <div class="card">
+            <div class="card-header">
+              <span class="label">핵심 개념</span>
+              <span class="badge">Light · Normal · Material</span>
+            </div>
+            <p>
+              Shading Stage는 “빛이 물체에 닿고, 반사되어 카메라로 들어오는 과정”을
+              수학적으로 흉내 내는 단계다. 광원, 노멀, 재질, 텍스처를 이용해 각 픽셀의 최종 색을 계산한다.
+              눈으로 치면 “빛과 재질 때문에 어떤 색과 질감으로 보이는지”를 해석하는 부분이다.
+            </p>
+            <ul>
+              <li><strong>노멀(Normal)</strong>: 표면이 어느 방향을 보고 있는지 알려주는 벡터.</li>
+              <li><strong>라이트(Light)</strong>: 방향성, 색, 세기를 가진 광원 정보.</li>
+              <li><strong>머티리얼(Material)</strong>: Diffuse, Specular, Roughness 등 재질 속성.</li>
+              <li><strong>텍스처(Texture)</strong>: 컬러, 노멀, 메탈릭 등 세부 패턴을 저장한 이미지.</li>
+            </ul>
+          </div>
+
+          <div class="card diagram">
+Light → [Normal &amp; Material] → [Pixel Shader] → Final Color
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>내 언어로 정의하기</h3>
+          <p class="myvoice">
+            “표면의 방향(노멀)에 따라 빛의 반사각이 달라진다.
+            그래서 색을 입히는 과정에서 노멀은 공간감과 원근감에 따른 색상 변화를
+            시뮬레이션하는 데 중요하다.
+            같은 이유로 그림자를 그릴 때도 ‘어디가 빛을 더 받는 표면인지’ 판단하는 데 필수다.”
+          </p>
+          <p class="myvoice">
+            “노멀맵은 버텍스를 직접 늘리지 않고도, 표면이 울퉁불퉁해 보이도록
+            ‘기울어진 것처럼 보이는 가짜 노멀 값’을 텍스처에 저장하는 기술이다.
+            메쉬를 세분화하지 않고도 디테일을 확보할 수 있는, 싸고 효율적인 속임수다.”
+          </p>
+        </div>
+
+        <div class="card insight">
+          <div class="insight-title">한 줄 정리</div>
+          <p>Shading은 3D 형상을 “빛의 언어로 번역해서” 색과 재질감을 입히는 단계다.</p>
+        </div>
+      </section>
+
+      <!-- 3. Depth & Visibility -->
+      <section id="depth-stage">
+        <div class="pill"><span></span>3. Depth &amp; Visibility Stage</div>
+        <h2>Depth &amp; Visibility — ‘보이는 픽셀만 남기는 정리 단계’</h2>
+
+        <!-- 시각 파이프라인 스트립 -->
+        <div class="card pipeline-diagram">
+          <div class="stage-box">Triangles</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Rasterize</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Depth Test (Z-Buffer)</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Visible Pixels</div>
+        </div>
+
+        <div class="grid-stage">
+          <div class="card">
+            <div class="card-header">
+              <span class="label">핵심 개념</span>
+              <span class="badge">Z-Buffer · Overdraw · Shadow</span>
+            </div>
+            <p>
+              Depth &amp; Visibility Stage는 겹쳐 있는 물체들 중에서 실제로 화면에 보여야 할 픽셀만 남기고,
+              나머지는 버리는 과정이다. Z-Buffer, Overdraw, Shadow Mapping 등이 여기에 포함된다.
+              사람 눈으로 보면 “겹쳐 있는 물체들 중 실제로 보이는 것만 남기고 나머지는 무의식적으로 버리는 과정”과 비슷하다.
+            </p>
+            <ul>
+              <li><strong>Z-Buffer</strong>: 픽셀마다 가장 앞에 있는 깊이를 저장하는 버퍼.</li>
+              <li><strong>Overdraw</strong>: 같은 픽셀이 여러 번 그려지는 현상.</li>
+              <li><strong>Shadow Map</strong>: 빛의 시점에서 본 깊이 정보를 담은 텍스처.</li>
+            </ul>
+          </div>
+
+          <div class="card diagram">
+[Triangles] → [Rasterize] → [Depth Test] → [Visible Pixels Only]
+
+Shadow Mapping:
+[Light POV Render] → Depth Texture → Compare with Camera POV
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>내 언어로 정의하기</h3>
+          <p class="myvoice">
+            “Z-Buffer는 ‘누가 앞에 있는지’를 기억하는 노트 같은 존재다.
+            어떤 픽셀을 그리기 전에, 이미 더 앞에 있는 값이 적혀 있다면
+            굳이 덮어쓰지 않고 버린다.
+            Z-Buffer는 일종의 출입대장이다. GPU는 뭐든 그리려 하지만,
+            Z-Buffer가 ‘너는 뒤에 있음’ 하고 걸러내서 앞에 있는 픽셀만 남긴다.”
+          </p>
+          <p class="myvoice">
+            “빛이 미리 측정해둔 깊이보다 뒤에 있으면 그림자로, 앞에 있으면 실체로 그린다.
+            GPU는 빛의 관점에서 기록한 깊이(Shadow Map)와 현재 픽셀의 Z값을 비교해,
+            더 뒤쪽이면 그림자, 더 앞이면 실제 표면으로 판단하는 식이다.”
+          </p>
+        </div>
+
+        <div class="card insight">
+          <div class="insight-title">한 줄 정리</div>
+          <p>Depth &amp; Visibility는 “겹친 것들 중 진짜로 보일 픽셀만 남기는 청소 단계”다.</p>
+        </div>
+      </section>
+
+      <!-- 4. Output -->
+      <section id="output-stage">
+        <div class="pill"><span></span>4. Output Stage</div>
+        <h2>Output — 완성된 프레임을 사용자에게 넘기는 단계</h2>
+
+        <!-- 시각 파이프라인 스트립 -->
+        <div class="card pipeline-diagram">
+          <div class="stage-box">GPU Rendering</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Back Buffer</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Swap (VBlank)</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Front Buffer</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Monitor</div>
+        </div>
+
+        <div class="grid-stage">
+          <div class="card">
+            <div class="card-header">
+              <span class="label">핵심 개념</span>
+              <span class="badge">Double Buffer · VSync · Triple Buffer</span>
+            </div>
+            <p>
+              Output Stage는 GPU가 만든 프레임을 깜빡임 없이, 찢어짐 없이
+              모니터에 전달하는 과정을 담당한다. Double Buffering, VSync, Triple Buffering 등이 핵심이다.
+              사람의 시각으로는 “완성된 화면이 눈과 뇌에 도착해 하나의 장면으로 인식되는 마지막 단계”에 해당한다.
+            </p>
+            <ul>
+              <li><strong>Double Buffering</strong>: 프론트(표시용) · 백(그리는 중) 버퍼 분리.</li>
+              <li><strong>VSync</strong>: 모니터의 새로고침 타이밍에 맞춰 버퍼를 교체.</li>
+              <li><strong>Triple Buffering</strong>: 한 프레임 더 쌓아두어, GPU가 쉬지 않도록 하는 구조.</li>
+            </ul>
+          </div>
+
+          <div class="card diagram">
+[GPU Rendering] → [Back Buffer] → (Swap at VBlank) → [Front Buffer] → Monitor
+
+Triple Buffering:
+[Back A] ← GPU → [Back B]
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>내 언어로 정의하기</h3>
+          <p class="myvoice">
+            “하나의 버퍼만 쓰면 지웠다가 새로 그리는 과정이 화면에 그대로 노출된다.
+            그래서 다음 장면을 미리 다른 버퍼(백 버퍼)에 그려두고,
+            완성되면 통째로 교체해야 부드럽게 이어지는 화면을 만들 수 있다.
+            백 버퍼는 주방이고, 프론트 버퍼는 손님 앞 식탁인 셈이다.”
+          </p>
+          <p class="myvoice">
+            “쉽게 그릴 수 있는 프레임을 너무 빨리 그려버리면,
+            더블 버퍼링에선 ‘새로 그리고 있을 공간’이 없어서 성능이 낭비된다.
+            버퍼를 하나 더 만들어두면 GPU는 계속 그리고 있을 수 있고,
+            어려운 프레임이 올 때도 이전에 그려둔 프레임 덕분에 화면이 부드럽게 이어진다.”
+          </p>
+        </div>
+
+        <div class="card insight">
+          <div class="insight-title">한 줄 정리</div>
+          <p>Output은 “완성된 프레임을 사용자가 보기 좋게 꺼내놓는 서비스 단계”다.</p>
+        </div>
+      </section>
+
+      <!-- 5. Optimization -->
+      <section id="optimization-stage">
+        <div class="pill"><span></span>5. Optimization Stage</div>
+        <h2>Optimization — ‘안 그려도 되는 것’을 찾는 기술</h2>
+
+        <!-- 시각 파이프라인 스트립 -->
+        <div class="card pipeline-diagram">
+          <div class="stage-box">World Objects</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Frustum / Occlusion</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">LOD / Impostor</div>
+          <div class="stage-arrow">→</div>
+          <div class="stage-box">Reduced Draw Calls</div>
+        </div>
+
+        <div class="grid-stage">
+          <div class="card">
+            <div class="card-header">
+              <span class="label">핵심 개념</span>
+              <span class="badge">LOD · Culling · Billboard/Impostor</span>
+            </div>
+            <p>
+              Optimization Stage는 “최대한 적은 계산으로, 사람이 보기엔 충분히 자연스러운 화면을 만드는 것”을 목표로 한다.
+              LOD, Frustum Culling, Occlusion Culling, Billboarding, Impostor, Normal Map 등 대부분의 기술은
+              결국 ‘덜 그리거나, 아예 안 그리는’ 방식으로 동작한다. 결국 인간의 눈과 뇌가 알아차리지 못하는 부분을 적극적으로 생략하는 기술들의 묶음이다.
+            </p>
+            <ul>
+              <li><strong>LOD(Level of Detail)</strong>: 거리에 따라 상세도(폴리곤 수)를 조절.</li>
+              <li><strong>Frustum Culling</strong>: 카메라 시야 밖 객체는 그리지 않음.</li>
+              <li><strong>Occlusion Culling</strong>: 다른 물체에 완전히 가려진 객체는 그리지 않음.</li>
+              <li><strong>Billboard / Impostor</strong>: 복잡한 3D를 2D 카드(이미지)로 대체.</li>
+            </ul>
+          </div>
+
+          <div class="card diagram">
+LOD:                   [Near] → high poly, [Far] → low poly
+Frustum Culling:      [Outside View Frustum] → culled
+Occlusion Culling:     [Hidden Behind] → culled (not rendered)
+LOD:                   [Far Objects] → lower detail mesh
+Billboard / Impostor:  [Complex 3D] → pre-rendered 2D card
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>내 언어로 정의하기</h3>
+          <p class="myvoice">
+            “멀리 있는 물체는 실제로 잘 보이지 않기 때문에 디테일을 줄여도 시각적 손해가 적다.
+            디테일을 줄이면 버텍스 처리와 셰이딩 연산을 크게 줄일 수 있다.
+            이미 깊이 정보를 알고 있으니, 거리 기준으로 LOD를 나누는 것 또한 부담이 적다.”
+          </p>
+          <p class="myvoice">
+            “카메라가 보지 않는 영역은 화면에 절대 나타나지 않으니 그릴 필요가 없다.
+            시야 밖을 그리지 않는 것은 완전히 안전하고 성능 이득만 있다.
+            카메라를 돌려도 엔진이 매 프레임 시야를 갱신해주기 때문에 위화감도 없다.”
+          </p>
+          <p class="myvoice">
+            “가려진 물체를 그리는 것만으로도 버텍스 변환, 셰이딩, 깊이 비교 같은
+            모든 단계에서 불필요한 비용이 발생한다.
+            하지만 플레이어의 눈에는 안 보이고, 안 그린다고 해서
+            게임 세계에서 사라지는 것도 아니다.
+            그릴 이유가 없고, 그리지 않는 게 무조건 이득이고, 안 그린다고 위험할 일도 없다.”
+          </p>
+          <p class="myvoice">
+            “버텍스를 직접 늘려 복잡한 나무를 모두 그리는 것은 비용이 크다.
+            대신 나무처럼 보이는 이미지를 평면에 붙인 뒤, 카메라를 향하게 돌려주면
+            저비용으로 비슷한 품질을 유지할 수 있다.
+            복잡한 구조를 통째로 그릴 필요 없이 ‘그럴듯한 그림’ 한 장으로
+            속여서 표현하는 게 빌보딩의 핵심이다.”
+          </p>
+        </div>
+
+        <div class="card insight">
+          <div class="insight-title">한 줄 정리</div>
+          <p>Optimization은 “보이는 것은 유지하면서, 안 봐도 되는 것·안 그려도 티 나지 않는 것을 줄여서 비용을 아끼는 단계”다.</p>
+        </div>
+
+        <div class="card insight">
+          <div class="insight-title">성과</div>
+          <p>
+            이번 그래픽스 파트의 학습을 통해, 결국 렌더링의 목적은
+            <strong>‘보여줘야 할 것들을 충분히 보여주는 것’</strong>이라는 점을 이해하게 되었습니다.
+            그 목적만 충족된다면, 화면 품질을 해치지 않는 선에서 비용을 줄여 나가는 것이
+            그래픽스 최적화의 핵심이라는 것도 깨달았습니다.<br><br>
+
+            특히 인간의 시각은 생각보다 제한적이어서,
+            보이지 않는 영역이나 알아채기 어려운 차이는 과감히 생략할 수 있다는 점을 알게 되었습니다.
+            이러한 특성을 잘 활용해 ‘안 그려도 되는 것’을 찾아 줄이고,
+            필요한 부분만 집중해 계산하는 것이 그래픽스 최적화의 본질임을 배웠습니다.
+          </p>
+
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 공용 문서 뷰어(오버레이) -->
+  <div id="doc-viewer-overlay" aria-hidden="true">
+    <div id="doc-viewer-backdrop"></div>
+    <div id="doc-viewer-panel">
+      <div id="doc-viewer-header">
+        <span id="doc-viewer-title">문서 보기</span>
+        <button id="doc-viewer-close" aria-label="닫기">✕</button>
+      </div>
+      <div id="doc-viewer-body">
+        <iframe
+          id="doc-viewer-frame"
+          src=""
+          title="문서 뷰어"
+        ></iframe>
+        <div id="doc-viewer-fallback">
+          <p>
+            GPT 대화 링크는 이 뷰어 안에서 직접 열 수 없다.
+            대신 새로운 탭에서 열 수 있도록 안내한다.
+          </p>
+          <button id="doc-viewer-open-new">
+            새 탭에서 열기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const overlay  = document.getElementById('doc-viewer-overlay');
+      const backdrop = document.getElementById('doc-viewer-backdrop');
+      const frame    = document.getElementById('doc-viewer-frame');
+      const fallback = document.getElementById('doc-viewer-fallback');
+      const closeBtn = document.getElementById('doc-viewer-close');
+      const titleEl  = document.getElementById('doc-viewer-title');
+
+      function openDoc(src, label) {
+        if (!src) return;
+        titleEl.textContent = label || '문서 보기';
+        overlay.style.display = 'flex';
+
+        const isGptShare = src.indexOf('chatgpt.com/share') !== -1;
+
+        if (isGptShare) {
+          // GPT 공유 링크는 iframe을 쓰지 않고, 팝업 안내 + 새 탭 열기 버튼만 제공
+          frame.style.display = 'none';
+          fallback.style.display = 'block';
+
+          const openNewBtn = document.getElementById('doc-viewer-open-new');
+          if (openNewBtn) {
+            openNewBtn.onclick = function () {
+              window.open(src, '_blank');
+            };
+          }
+        } else {
+          // 일반 PDF/HTML 문서는 iframe으로 로드
+          frame.style.display = 'block';
+          fallback.style.display = 'none';
+          frame.src = src;
+        }
+      }
+
+      function closeDoc() {
+        overlay.style.display = 'none';
+        frame.src = '';
+      }
+
+      // 버튼들에 클릭 이벤트 연결 (자동 오픈 제거)
+      document.querySelectorAll('.doc-btn').forEach(function (btn) {
+        const src   = btn.getAttribute('data-doc-src');
+        const label = btn.textContent.trim();
+
+        btn.addEventListener('click', function () {
+          if (src) {
+            openDoc(src, label);
+          }
+        });
+      });
+
+      // 닫기/배경 클릭/ESC
+      closeBtn.addEventListener('click', closeDoc);
+      backdrop.addEventListener('click', closeDoc);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeDoc();
+      });
+    })();
+  </script>
+</body>
+</html>

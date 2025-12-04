@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>데이터베이스 · 네트워크 · 플랫폼 학습 포트폴리오</title>
+
+  <style>
+    /* ===== 공통 스타일 (Graphics/Process/자료구조와 통일) ===== */
+    :root {
+      --bg: #0f1115;
+      --panel: #151924;
+      --card: #1b2030;
+      --text: #e6ebff;
+      --muted: #9ca3af;
+      --subtext: #9ca3af;
+      --accent: #7aa2ff;
+      --accent-soft: rgba(122,162,255,0.14);
+      --border: #252b3d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+        "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #141826 0, #050610 55%, #000 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ===== 상단 글로벌 헤더 (공통 탭) ===== */
+    .global-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(
+        180deg,
+        rgba(5,6,16,0.96),
+        rgba(5,6,16,0.88),
+        transparent
+      );
+      border-bottom: 1px solid rgba(30,64,175,0.6);
+    }
+    .global-header-inner {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .global-header-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--subtext);
+    }
+    .global-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .global-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.95);
+      font-size: 13px;
+      color: var(--subtext);
+      text-decoration: none;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.05s ease;
+    }
+    .global-tab:hover {
+      border-color: var(--accent);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+    .global-tab.active {
+      background: var(--accent);
+      color: #020617;
+      border-color: transparent;
+    }
+    @media (max-width: 720px) {
+      .global-header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+
+    /* ===== 페이지 2열 레이아웃 ===== */
+    .page {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    /* ===== 사이드바 ===== */
+    aside {
+      position: sticky;
+      top: 16px;
+      align-self: flex-start;
+    }
+
+    .sidebar-card {
+      background: linear-gradient(145deg, #181b24, #101320);
+      border-radius: 18px;
+      padding: 18px 16px 16px;
+      border: 1px solid rgba(122,162,255,0.5);
+      box-shadow: 0 18px 45px rgba(15,23,42,0.85);
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #9ca3ff;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-main {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    nav.toc {
+      margin-top: 10px;
+    }
+    nav.toc ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 13px;
+    }
+    nav.toc li + li {
+      margin-top: 4px;
+    }
+    nav.toc a {
+      position: relative;
+      display: block;
+      padding-left: 14px;
+      color: var(--muted);
+    }
+    nav.toc a::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--accent);
+    }
+    nav.toc a:hover {
+      color: var(--accent);
+    }
+
+    /* ===== 메인 카드 ===== */
+    main {
+      background:
+        radial-gradient(
+          circle at top left,
+          rgba(30,64,175,0.28),
+          transparent 55%
+        )
+          fixed,
+        linear-gradient(
+          160deg,
+          rgba(15,23,42,0.96),
+          rgba(2,6,23,0.99)
+        );
+      border-radius: 24px;
+      border: 1px solid rgba(39,45,70,0.9);
+      box-shadow: 0 26px 65px rgba(15,23,42,0.95);
+      padding: 22px 18px 26px;
+    }
+
+    section {
+      margin-top: 22px;
+      padding: 18px 18px 20px;
+      border-radius: 16px;
+      background: radial-gradient(
+        circle at top left,
+        rgba(50,80,180,0.15),
+        rgba(10,12,22,0.9)
+      );
+      border: 1px solid var(--border);
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      margin: 18px 0 6px;
+      font-size: 16px;
+    }
+
+    p {
+      margin: 4px 0 8px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    ul {
+      margin: 4px 0 8px 18px;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    /* ===== 작은 라벨(Pill) ===== */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(8,10,22,0.9);
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .pill span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* ===== 그리드 ===== */
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+    @media (min-width: 800px) {
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .card {
+      border-radius: 12px;
+      background: rgba(10,12,24,0.96);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+
+    figure {
+      margin: 0;
+    }
+    figure img {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #050611;
+      display: block;
+    }
+    figure figcaption {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ===== 코드 ===== */
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+        "Liberation Mono";
+      font-size: 12px;
+      background: rgba(5,7,16,0.9);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    pre {
+      margin: 6px 0 8px;
+      padding: 10px 12px;
+      background: rgba(5,7,16,0.95);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      overflow-x: auto;
+    }
+
+    /* ===== 문서 버튼/링크 ===== */
+    .doc-links {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .doc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.95);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.05s ease;
+    }
+    .doc-btn:hover {
+      background: #ffffff;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      color: #000;
+    }
+
+    /* ===== 푸터 ===== */
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ===== 문서 뷰어 오버레이 (Graphics와 통일) ===== */
+    #doc-viewer-overlay {
+      position: fixed;
+      inset: 0;
+      display: none; /* 기본 숨김 */
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    #doc-viewer-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    #doc-viewer-panel {
+      position: relative;
+      width: 90%;
+      height: 80%;
+      max-width: 1000px;
+      border-radius: 16px;
+      background: #020617;
+      border: 1px solid rgba(148,163,184,0.7);
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #doc-viewer-header {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(31,41,55,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: radial-gradient(
+        circle at top left,
+        rgba(15,23,42,0.95),
+        rgba(2,6,23,0.98)
+      );
+      font-size: 13px;
+    }
+    #doc-viewer-title {
+      font-weight: 500;
+      color: var(--muted);
+    }
+    #doc-viewer-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+    }
+    #doc-viewer-close:hover {
+      color: #f97373;
+    }
+    #doc-viewer-body {
+      flex: 1;
+      position: relative;
+    }
+    #doc-viewer-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #020617;
+    }
+    #doc-viewer-fallback {
+      display: none;
+      height: 100%;
+      padding: 16px;
+      font-size: 14px;
+      color: var(--text);
+    }
+    #doc-viewer-fallback p {
+      margin: 8px 0;
+    }
+    #doc-viewer-fallback button {
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.9);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    #doc-viewer-fallback button:hover {
+      background: #ffffff;
+      color: #000;
+    }
+
+    @media (max-width: 960px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+      aside {
+        position: static;
+        order: -1;
+      }
+      main {
+        padding: 18px 14px 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 글로벌 탭 헤더 -->
+  <header class="global-header">
+    <div class="global-header-inner">
+      <div class="global-header-title">
+        CS Portfolio · Database · Network · Platform
+      </div>
+      <nav class="global-tabs" aria-label="CS Portfolio Tabs">
+        <a class="global-tab" href="../index.html">Index</a>
+        <a class="global-tab" href="../1_Data_Structure/Data_Structure.html">자료구조</a>
+        <a class="global-tab" href="../2_Process/process.html">프로세스</a>
+        <a class="global-tab" href="../3_Graphics/Graphics.html">그래픽스</a>
+        <a class="global-tab active" href="./Network.html">네트워크</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page">
+    <!-- 사이드바: 타이틀 & 목차 -->
+    <aside>
+      <div class="sidebar-card">
+        <div class="sidebar-title">CS Portfolio</div>
+        <div class="sidebar-main">Database · Network · Platform</div>
+        <div class="sidebar-sub">
+          데이터베이스 → 네트워크 → 플랫폼(Android)까지 하나의 흐름으로 묶어서,
+          실습과 결과물을 정리한 문서다. 아래 목차를 통해 각 단계를 바로 확인할 수 있다.
+        </div>
+
+        <nav class="toc" aria-label="DB · Network · Platform TOC">
+          <ol>
+            <li><a href="#overview">문서 개요</a></li>
+            <li><a href="#db">1. 데이터베이스</a></li>
+            <li><a href="#net">2. 네트워크</a></li>
+            <li><a href="#platform">3. 플랫폼(Android)</a></li>
+            <li><a href="#service">4. 서비스 구조 설계</a></li>
+          </ol>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- 메인 콘텐츠 -->
+    <main>
+      <!-- 문서 개요 -->
+      <section id="overview">
+        <div class="pill"><span></span>문서 개요</div>
+        <h2>데이터 → 네트워크 → 플랫폼까지 한 흐름으로 묶은 실습 기록</h2>
+        <p>
+          이 문서는 제가 게임 클라이언트 프로그래머로 성장하기 위해 학습한 내용을,
+          <b>데이터베이스 · 네트워크 · 플랫폼(Android)</b>의 한 흐름으로 연결해 정리한 포트폴리오입니다.
+          단순히 용어를 나열하는 것이 아니라,
+          <b>직접 만들고 실행하고, 문제를 해결하며 남긴 기록</b>을 중심으로 구성했습니다.
+        </p>
+        <ul>
+          <li><b>데이터베이스</b> — MySQL 스키마 설계, 쿼리 작성, 트랜잭션/무결성 실습</li>
+          <li><b>네트워크</b> — TCP/UDP 기반 IP Trade Simulator 서버/클라이언트 구현, Ping 측정 및 UI 반영</li>
+          <li><b>플랫폼(Android)</b> — Unity에서 Android 네이티브 플러그인 연동, 레거시 환경 마이그레이션</li>
+          <li><b>서비스 구조 설계</b> — 오프라인 게임에 DB/결제/클라우드 세이브를 도입하는 구조 기획</li>
+        </ul>
+        <p>
+          실제로는 <b>“데이터를 어떻게 저장하고” → “어떻게 주고받고” → “어떤 플랫폼에서 동작시킬지”</b>가
+          하나의 문제이기 때문에, 각 단원을 별개가 아니라 <b>서로 이어지는 단계</b>로 바라보고 정리했습니다.
+        </p>
+      </section>
+
+      <!-- 1. 데이터베이스 -->
+      <section id="db">
+        <div class="pill"><span></span>1. 데이터베이스</div>
+        <h2>게임 데이터를 위한 MySQL 스키마 설계 &amp; 실습</h2>
+
+        <h3>1-1. 스키마 설계와 데이터 정규화</h3>
+        <p>
+          ‘헌터 인 더 게이트’의 카드·인벤토리 데이터를 MySQL로 옮기면서,
+          실제 게임에서 사용할 수 있는 수준의 <b>스키마 설계</b>를 목표로 삼았습니다.
+          단일 테이블에 문자열로 억지로 우겨 넣는 방식 대신,
+          <b>player · card · inventory</b> 테이블을 나누고
+          PK/FK/UNIQUE/NOT NULL 등 제약 조건을 활용해 구조를 정리했습니다.
+        </p>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <figure>
+              <img src="img/db_select_carddata.png" alt="carddata SELECT 결과">
+              <figcaption>카드 마스터 데이터 SELECT 결과 화면</figcaption>
+            </figure>
+          </div>
+          <div class="card">
+            <figure>
+              <img src="img/db_table_carddata.png" alt="carddata 테이블 구조">
+              <figcaption>carddata 테이블의 키 정의 및 컬럼 구조</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <h3>1-2. 참조 무결성과 트랜잭션 실습</h3>
+        <p>
+          인벤토리(소지 카드)를 표현할 때는 <b>player_id + card_id</b> 조합으로 구성된 테이블을 사용했습니다.
+          이를 통해 한 플레이어가 어떤 카드를 몇 장 가지고 있는지,
+          필요할 때 즉시 색인해 가져올 수 있었습니다.
+          또한 JOIN 쿼리를 통해 실제로 <b>정상적인 참조 관계가 유지되는지</b>를 검증했습니다.
+        </p>
+
+        <pre>SELECT * FROM inventories
+JOIN players ON inventories.player_id = players.id
+JOIN cards   ON inventories.card_id   = cards.card_id;</pre>
+
+        <p>
+          이 과정에서 단순 SELECT를 넘어서, <b>트랜잭션</b>과 <b>롤백</b> 개념을 함께 실습하며
+          “게임 중에 아이템 지급/회수 작업이 실패하면 어떻게 해야 하는가?”라는 질문을
+          데이터베이스 레벨에서 생각해 볼 수 있었습니다.
+        </p>
+
+        <h3>1-3. 관련 문서</h3>
+        <div class="doc-links">
+          <button class="doc-btn" data-doc-src="docs/데이터베이스 작업내역서.pdf">📄 데이터베이스 작업내역서</button>
+          <button class="doc-btn" data-doc-src="docs/쿼리문.pdf">🧾 쿼리문 전체 보기</button>
+          <button class="doc-btn" data-doc-src="docs/데이터베이스 용어 정리.txt">🔍 DB 용어 정리</button>
+          <button class="doc-btn" data-doc-src="docs/게임 데이터베이스 적용 계획서.html">📘 게임 DB 적용 계획서</button>
+        </div>
+      </section>
+
+      <!-- 2. 네트워크 -->
+      <section id="net">
+        <div class="pill"><span></span>2. 네트워크</div>
+        <h2>IP Trade Simulator — 서버/클라이언트 &amp; TCP/UDP 실습</h2>
+
+        <h3>2-1. 서버/클라이언트 실제 실행 화면</h3>
+        <p>
+          네트워크 파트에서는 제가 직접 만든 작은 게임인 <b>IP Trade Simulator</b>를 기반으로,
+          <b>서버/클라이언트 구조</b>와 <b>TCP/UDP 통신</b>을 실습했습니다.
+          단순한 에코 서버를 넘어서, <b>게임 로직과 UI가 네트워크 상태를 어떻게 반영할지</b>에 집중했습니다.
+        </p>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <figure>
+              <img src="img/net_server_console.png" alt="서버 콘솔 로그">
+              <figcaption>TCP/UDP 포트 연결 · Snapshot 브로드캐스트 로그</figcaption>
+            </figure>
+            <p>
+              서버 콘솔에서는 클라이언트 접속/해제, 패킷 수신, <b>스냅샷 브로드캐스트</b> 로그를 출력해
+              실제로 어떤 데이터가 어느 타이밍에 오가는지 확인했습니다.
+            </p>
+          </div>
+          <div class="card">
+            <figure>
+              <img src="img/net_client_ui.png" alt="클라이언트 UI">
+              <figcaption>Ping(ms) 반영 및 상점 UI 실시간 갱신</figcaption>
+            </figure>
+            <p>
+              클라이언트에서는 서버와의 왕복 시간(Ping)을 측정해 <b>ms 단위로 UI에 표시</b>하고,
+              네트워크 스냅샷에 따라 상점 UI가 실시간으로 갱신되도록 구현했습니다.
+            </p>
+          </div>
+        </div>
+
+        <h3>2-2. TCP와 UDP를 구분해서 사용</h3>
+        <p>
+          실습에서는 TCP와 UDP를 각각 <b>어떤 용도로 배치하는 것이 좋은지</b>를 직접 느껴보기 위해,
+          의도적으로 두 가지를 모두 사용했습니다.
+        </p>
+        <ul>
+          <li><b>TCP</b> — 접속/로그인, 중요한 거래 요청 등 <b>절대 유실되면 안 되는 데이터</b></li>
+          <li><b>UDP</b> — 주기적으로 흘러가는 스냅샷, 빈번한 상태 갱신 등 <b>일부 유실을 허용할 수 있는 데이터</b></li>
+        </ul>
+        <p>
+          단순히 “TCP는 신뢰성, UDP는 비신뢰성”이라는 암기에서 벗어나,
+          실제 게임 상황에서 어떤 데이터를 어느 쪽에 태워 보내야 할지
+          클라이언트 입장에서 판단해 보는 경험이었습니다.
+        </p>
+
+        <h3>2-3. 관련 문서</h3>
+        <div class="doc-links">
+          <button class="doc-btn" data-doc-src="docs/네트워크게임 작업내역서_이무준.pdf">📄 네트워크 게임 작업내역서</button>
+          <button class="doc-btn" data-doc-src="docs/TCP_UDP 적용 프로그램 작업내역서_이무준.pdf">📄 TCP/UDP 프로그램 작업내역서</button>
+          <button class="doc-btn" data-doc-src="docs/네트워크 용어 정리.txt">🔍 네트워크 용어 정리</button>
+        </div>
+      </section>
+
+      <!-- 3. 플랫폼(Android) -->
+      <section id="platform">
+        <div class="pill"><span></span>3. 플랫폼 (Android Native Plugin)</div>
+        <h2>Unity → Android 네이티브 플러그인 연동</h2>
+
+        <p>
+          플랫폼 파트에서는 Unity로 만든 게임을 Android에서 동작시키고,
+          <b>네이티브 플러그인</b>을 통해 안드로이드 기능을 호출하는 과정을 실습했습니다.
+          단순 빌드에 그치지 않고, <b>레거시 예제 프로젝트를 최신 환경으로 마이그레이션</b>하는 데 초점을 맞췄습니다.
+        </p>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <ul>
+              <li>Android Studio 예제를 최신 Gradle/JDK/AndroidX 환경으로 마이그레이션</li>
+              <li><code>Plugin.java</code>에서 패키지명/Activity 설정/<code>runOnUiThread</code> 호출 구조 정비</li>
+              <li>Unity 쪽에서 <code>currentActivity</code>를 전달해 Toast 메시지를 안전하게 호출</li>
+              <li>Unity 서버 + Android 클라이언트 구성으로 실제 네트워크 게임 빌드까지 확인</li>
+            </ul>
+            <p>
+              특히, 오래된 예제를 무작정 따라 하기보다 “왜 이 코드가 지금 환경에서 에러가 나는지”를 분석하고,
+              <b>AndroidX 의존성, Gradle 버전, SDK 타깃 버전</b>을 하나씩 맞춰 가며
+              현재 기준에서 동작하는 프로젝트로 재구성한 경험이 인상적이었습니다.
+            </p>
+          </div>
+          <div class="card">
+            <figure>
+              <img src="img/android_plugin_code.png" alt="Android Studio Plugin.java">
+              <figcaption>Android Studio에서 Plugin.java 수정 중</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <h3>3-2. 관련 문서</h3>
+        <div class="doc-links">
+          <button class="doc-btn" data-doc-src="docs/플랫폼 프로그래밍 작업내역서.pdf">📄 플랫폼 작업내역서</button>
+          <button class="doc-btn" data-doc-src="docs/플랫폼 용어정리.txt">🔍 플랫폼 용어정리</button>
+        </div>
+      </section>
+
+      <!-- 4. 서비스 구조 설계 -->
+      <section id="service">
+        <div class="pill"><span></span>4. 서비스 구조 설계</div>
+        <h2>오프라인 게임에 DB/결제/클라우드 저장을 도입한다면?</h2>
+        <p>
+          마지막으로, 앞선 학습(DB/네트워크/플랫폼)을 바탕으로
+          실제 상용 게임에 적용할 수 있는 <b>클라우드 세이브 + 인앱 결제 + 서버 검증</b> 구조를 직접 설계해 보았습니다.
+          출발점은 단순했습니다.  
+          <b>“클라이언트 세이브 파일을 복사해서 쓰면 어떻게 막을 수 있을까?”</b>
+        </p>
+
+        <pre>[클라이언트]
+  ├ 오프라인 플레이 (로컬 세이브)
+  ├ 인앱 구매 요청 → 서버 API 호출
+  ├ 클라우드 세이브 불러오기 / 업로드
+
+[서버]
+  ├ 결제 검증 (트랜잭션)
+  ├ 유료 아이템 지급 및 상태 반영
+  ├ 세이브 데이터 저장/로드 (무결성 보장)
+  └ 로그 기록 (Audit Log, 이상 징후 추적)
+
+[DB]
+  ├ players / save_slots / item_purchases
+  └ 외래키 + UNIQUE + 트랜잭션으로 복제·변조 방지</pre>
+
+        <p>
+          이 설계 작업을 통해 단순히 “DB를 조금 쓸 줄 안다”가 아니라,
+          <b>“어떤 구조로 연동해야 운영 이슈를 줄이고, 치팅을 어렵게 만들 수 있는지”</b>를
+          클라이언트 개발자의 관점에서 고민해 볼 수 있었습니다.
+        </p>
+
+        <div class="doc-links">
+          <button class="doc-btn" data-doc-src="docs/게임 데이터베이스 적용 계획서.html">
+            📘 서비스 구조 설계 문서 보기
+          </button>
+        </div>
+      </section>
+
+<!-- ============================= -->
+<!-- 5. 학습 성과
+<!-- ============================= -->
+<section id="summary">
+  <div class="pill"><span></span>성과</div>
+  <h2>성과</h2>
+
+  <!-- 성과 카드 -->
+  <div class="card insight" style="margin-top: 12px;">   
+    <p>
+      이번 데이터베이스 · 네트워크 · 플랫폼(Android) 파트를 하나의 흐름으로 묶어 학습하면서,
+      실제 게임 서비스가 <strong>어떤 방식으로 데이터를 저장하고</strong>,
+      <strong>어떻게 주고받으며</strong>,
+      <strong>어떤 플랫폼 환경에서 실행되는가</strong>를
+      개발자의 관점에서 체계적으로 이해할 수 있게 되었습니다.
+    </p>
+
+    <p>
+      특히 MySQL 스키마 설계 → TCP/UDP 기반 클라이언트·서버 구현 →
+      Android 네이티브 플러그인 연동까지 이어지는 전체 과정을 직접 실습하며,
+      <strong>게임의 외부 세계와 연결되는 모든 지점</strong>을
+      단순 이론이 아니라 구체적인 결과물로 정리할 수 있었습니다.
+    </p>
+
+    <p>
+      또한 네트워크 지연(Ping)을 UI에 반영하는 방식, TCP/UDP의 쓰임새 구분,
+      Android-X 레거시 마이그레이션 과정 등을 경험하며,
+      클라이언트 개발자가 고려해야 할 <strong>실전적인 문제 해결 관점</strong>을 갖추게 되었습니다.
+    </p>
+
+    <p>
+      마지막으로 서비스 구조 설계 단계에서는,
+      단순한 오프라인 게임에도 <strong>DB·결제·클라우드 세이브</strong>가 어떤 형태로 들어와야 하는지,
+      그리고 이를 어떻게 안전하게 연결해야 하는지까지
+      논리적으로 정리할 수 있게 된 것이 큰 성과였습니다.
+    </p>
+  </div>
+</section>
+      <div class="footer">
+        © 시스템 프로그래밍 포트폴리오 — 학습 및 실습 기반 정리
+      </div>
+    </main>
+  </div>
+
+  <!-- 공용 문서 뷰어(오버레이) -->
+  <div id="doc-viewer-overlay" aria-hidden="true">
+    <div id="doc-viewer-backdrop"></div>
+    <div id="doc-viewer-panel">
+      <div id="doc-viewer-header">
+        <span id="doc-viewer-title">문서 보기</span>
+        <button id="doc-viewer-close" aria-label="닫기">✕</button>
+      </div>
+      <div id="doc-viewer-body">
+        <iframe
+          id="doc-viewer-frame"
+          src=""
+          title="문서 뷰어"
+        ></iframe>
+        <div id="doc-viewer-fallback">
+          <p>
+            GPT 대화 링크는 이 뷰어 안에서 직접 열 수 없다.
+            대신 새로운 탭에서 열 수 있도록 안내한다.
+          </p>
+          <button id="doc-viewer-open-new">
+            새 탭에서 열기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const overlay  = document.getElementById('doc-viewer-overlay');
+      const backdrop = document.getElementById('doc-viewer-backdrop');
+      const frame    = document.getElementById('doc-viewer-frame');
+      const fallback = document.getElementById('doc-viewer-fallback');
+      const closeBtn = document.getElementById('doc-viewer-close');
+      const titleEl  = document.getElementById('doc-viewer-title');
+
+      function openDoc(src, label) {
+        if (!src) return;
+        titleEl.textContent = label || '문서 보기';
+        overlay.style.display = 'flex';
+
+        const isGptShare = src.indexOf('chatgpt.com/share') !== -1;
+
+        if (isGptShare) {
+          // GPT 공유 링크는 iframe 대신 안내 + 새 탭 열기 버튼만 제공
+          frame.style.display = 'none';
+          fallback.style.display = 'block';
+
+          const openNewBtn = document.getElementById('doc-viewer-open-new');
+          if (openNewBtn) {
+            openNewBtn.onclick = function () {
+              window.open(src, '_blank');
+            };
+          }
+        } else {
+          // 일반 PDF/HTML/TXT는 iframe으로 로드
+          frame.style.display = 'block';
+          fallback.style.display = 'none';
+          frame.src = src;
+        }
+      }
+
+      function closeDoc() {
+        overlay.style.display = 'none';
+        frame.src = '';
+      }
+
+      // 버튼 클릭 이벤트 바인딩
+      document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.doc-btn');
+        if (!btn) return;
+        const src = btn.getAttribute('data-doc-src');
+        const label = btn.textContent.trim();
+        if (src) {
+          openDoc(src, label);
+        }
+      });
+
+      // 닫기 버튼 / 배경 클릭 시 닫기
+      closeBtn.addEventListener('click', closeDoc);
+      backdrop.addEventListener('click', closeDoc);
+
+      // ESC로 닫기
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          closeDoc();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

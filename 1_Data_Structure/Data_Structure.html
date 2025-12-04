@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>C++ 메모리·자료구조 실험 포트폴리오 – v4(요약↔전체흐름 토글)</title>
+  <meta name="description" content="직접 그린 메모리 그림과 실험 페이지 전체 흐름을 한 문서에서 요약↔전개 토글로 보여주는 포트폴리오" />
+
+  <style>
+    :root {
+      --bg: #050712;
+      --panel: #0b1020;
+      --card: #111827;
+      --text: #e6ebff;
+      --fg: #e6ebff;
+      --muted: #9ca3af;
+      --subtext: #9ca3af;
+      --accent: #7aa2ff;
+      --border: #1f2937;
+      --chip: rgba(122,162,255,0.12);
+      --overlay: rgba(0,0,0,0.82);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at top, #141826 0, #050610 55%, #000 100%);
+      color: var(--text);
+      font: 16px/1.65 system-ui, -apple-system, Segoe UI, Roboto,
+            "Apple SD Gothic Neo", "Malgun Gothic", Noto Sans KR, sans-serif;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ===== 상단 글로벌 탭 네비게이션 (공통) ===== */
+    .global-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(
+        180deg,
+        rgba(5,6,16,0.96),
+        rgba(5,6,16,0.88),
+        transparent
+      );
+      border-bottom: 1px solid rgba(30,64,175,0.6);
+    }
+
+    .global-header-inner {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .global-header-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--subtext);
+    }
+
+    .global-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .global-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.95);
+      font-size: 13px;
+      color: var(--subtext);
+      text-decoration: none;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.05s ease;
+    }
+
+    .global-tab:hover {
+      border-color: var(--accent);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .global-tab.active {
+      background: var(--accent);
+      color: #020617;
+      border-color: transparent;
+    }
+
+    @media (max-width: 720px) {
+      .global-header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+
+    /* ===== 페이지 레이아웃: 좌측 목차 + 우측 메인 ===== */
+    .page {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    aside {
+      position: sticky;
+      top: 16px;
+      align-self: flex-start;
+    }
+
+    .sidebar-card {
+      background: linear-gradient(145deg, #181b24, #101320);
+      border-radius: 18px;
+      padding: 18px 16px 16px;
+      border: 1px solid rgba(122,162,255,0.5);
+      box-shadow: 0 18px 45px rgba(15,23,42,0.85);
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #9ca3ff;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-main {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    nav.toc {
+      margin-top: 10px;
+    }
+    nav.toc ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 13px;
+    }
+    nav.toc li + li {
+      margin-top: 4px;
+    }
+    nav.toc a {
+      position: relative;
+      display: block;
+      padding-left: 14px;
+      color: var(--muted);
+    }
+    nav.toc a::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--accent);
+    }
+    nav.toc a:hover {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* ===== 메인 카드 ===== */
+    main {
+      min-width: 0;
+      background:
+        radial-gradient(
+          circle at top left,
+          rgba(30,64,175,0.28),
+          transparent 55%
+        )
+          fixed,
+        linear-gradient(
+          160deg,
+          rgba(15,23,42,0.96),
+          rgba(2,6,23,0.99)
+        );
+      border-radius: 24px;
+      border: 1px solid rgba(30,64,175,0.55);
+      box-shadow: 0 26px 65px rgba(15,23,42,0.95);
+      padding: 24px 22px 28px;
+    }
+
+    /* 페이지 내부 헤더(본문용) */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(72,85,121,0.6);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+
+    .page-header h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.01em;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f6f7fb;
+      cursor: pointer;
+      font-size: 13px;
+      color: #111827;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.05s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: #ffffff;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    section {
+      margin-top: 22px;
+      padding: 18px 18px 24px;
+      border-radius: 16px;
+      background: radial-gradient(
+        circle at top left,
+        rgba(50,80,180,0.14),
+        rgba(10,12,22,0.96)
+      );
+      border: 1px solid rgba(31,41,55,0.9);
+    }
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+    }
+
+    .kicker {
+      display: inline-block;
+      background: rgba(10,12,24,0.9);
+      padding: 3px 10px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11px;
+      border: 1px solid rgba(31,41,55,0.9);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    p {
+      margin: 6px 0 8px;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .ul {
+      margin: 0 0 0 16px;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+    @media (min-width: 980px) {
+      .grid.cols-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: radial-gradient(
+        circle at top left,
+        rgba(50,80,180,0.14),
+        rgba(10,12,22,0.96)
+      );
+      box-shadow: 0 14px 30px rgba(0,0,0,0.45);
+    }
+
+    .figure {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(10,12,24,0.96);
+    }
+
+    /* Overview 4-tile row */
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 10px;
+    }
+
+    .tile {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tile img {
+      display: block;
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      background: #050611;
+    }
+
+    .tile figcaption {
+      padding: 6px 8px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      background: rgba(5,7,16,0.95);
+    }
+
+    .tile.allflow {
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      background: linear-gradient(
+        145deg,
+        rgba(122,162,255,0.16),
+        rgba(21,25,36,0.98)
+      );
+    }
+
+    .tile.allflow .center {
+      text-align: center;
+      font-weight: 700;
+      color: var(--fg);
+      line-height: 1.3;
+      font-size: 14px;
+    }
+
+    /* Full gallery */
+    .gallery {
+      --min: 140px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(var(--min),1fr));
+      gap: 10px;
+    }
+
+    .thumb {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: zoom-in;
+      background: var(--card);
+    }
+
+    .thumb img {
+      display: block;
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      background: #050611;
+    }
+
+    .thumb figcaption {
+      padding: 6px 8px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      background: rgba(5,7,16,0.95);
+    }
+
+    .flow-wrap {
+      display: none;
+      margin-top: 10px;
+    }
+    .flow-wrap.open {
+      display: block;
+    }
+
+    .backbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .backbar .back {
+      border: 1px solid var(--border);
+      background: rgba(10,12,24,0.96);
+      border-radius: 999px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .backbar .back:hover {
+      border-color: var(--accent);
+      color: var(--fg);
+    }
+
+    footer {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox img {
+      max-width: 92vw;
+      max-height: 88vh;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      background: #000;
+    }
+
+    .lightbox .caption {
+      color: #e5e7eb;
+      margin-top: 10px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .lightbox .nav {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      color: #e5e7eb;
+      font-size: 28px;
+    }
+
+    .lightbox .nav button {
+      background: transparent;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      padding: 12px;
+    }
+
+    .lightbox .close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 24px;
+      color: #e5e7eb;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    @media (max-width: 980px) {
+      .page {
+        grid-template-columns: 1fr;
+        padding: 16px 14px 28px;
+      }
+
+      aside {
+        position: static;
+        top: auto;
+        margin-bottom: 16px;
+      }
+
+      main {
+        padding: 18px 16px 24px;
+      }
+
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .tiles {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media print {
+      aside,
+      .btn,
+      .lightbox,
+      .tile.allflow,
+      .backbar {
+        display: none !important;
+      }
+      html, body {
+        background: #ffffff;
+        color: #111827;
+      }
+      .page {
+        display: block;
+        padding: 0;
+        margin: 0;
+        max-width: 100%;
+      }
+      main {
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        background: #ffffff;
+      }
+      .page-header {
+        border-bottom: none;
+        margin: 0 0 8px 0;
+      }
+      section {
+        page-break-inside: avoid;
+        border: 1px solid #e5e7eb;
+        border-radius: 0;
+        margin: 8px 0;
+        background: #ffffff;
+      }
+      .figure,
+      .card {
+        box-shadow: none;
+        background: #ffffff;
+        border-color: #e5e7eb;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 상단 글로벌 탭 -->
+<header class="global-header">
+  <div class="global-header-inner">
+    <div class="global-header-title">CS PORTFOLIO · DATA STRUCTURE</div>
+    <nav class="global-tabs" aria-label="CS Portfolio Tabs">
+      <!-- 경로는 실제 폴더 구조에 맞게 조정 -->
+      <a class="global-tab" href="../index.html">Index</a>
+      <a class="global-tab active" href="./Data_Structure.html">자료구조</a>
+      <a class="global-tab" href="../2_Process/process.html">프로세스</a>
+      <a class="global-tab" href="../3_Graphics/Graphics.html">그래픽스</a>
+      <a class="global-tab" href="../4_Network/Network.html">네트워크</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page" role="document">
+  <!-- 좌측 사이드바 목차 -->
+  <aside>
+    <div class="sidebar-card">
+      <div class="sidebar-title">CS Portfolio</div>
+      <div class="sidebar-main">C++ 메모리 · 자료구조 실험</div>
+      <div class="sidebar-sub">
+        포인터, 배열, 연결 리스트, 트리를 직접 구현하고
+        <b>주소와 출력</b>으로 검증한 학습 흐름을
+        <b>썸네일 요약 ↔ 전체 갤러리 토글</b> 방식으로 정리한 문서다.
+      </div>
+
+      <nav class="toc" aria-label="문서 목차">
+        <ol>
+          <li><a href="#intro">Intro</a></li>
+          <li><a href="#pointer">실험 01 · 포인터</a></li>
+          <li><a href="#array">실험 02 · 배열과 주소</a></li>
+          <li><a href="#list">실험 03 · 단일 연결 리스트</a></li>
+          <li><a href="#tree">실험 04 · 이진 트리</a></li>
+          <li><a href="#unity">결론 &amp; Unity 적용</a></li>
+        </ol>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- 우측 메인 -->
+  <main>
+    <header class="page-header">
+      <div>
+        <h2>C++ 메모리·자료구조 실험 포트폴리오</h2>
+        <div class="lead">
+          C++로 직접 실험한 <b>메모리·자료구조</b> 학습 과정을,
+          <b>대표 썸네일 3장</b>과 <b>전체 흐름 보기</b> 갤러리를 한 문서에서 토글해 가며 확인할 수 있도록 정리한 포트폴리오입니다.
+        </div>
+      </div>
+    </header>
+
+    <section id="intro">
+      <span class="kicker">Intro</span>
+      <h3>“머리로만 이해하지 않고, 눈으로 검증합니다.”</h3>
+      <p class="lead">
+        교과서 설명만 읽는 대신, <b>값 → 주소 → 구조</b>로 사고를 확장해 가는 과정을
+        실제 출력과 그림으로 한 단계씩 확인했습니다.
+        각 실험은 먼저 <b>대표 썸네일 3장</b>으로 요약하고,
+        필요 시 <b>전체 흐름 보기</b>를 눌러 모든 페이지를 한 번에 확인할 수 있습니다.
+      </p>
+      <p class="lead">
+        포인터, 배열, 연결 리스트, 이진 트리를 직접 구현·출력해 보면서
+        “데이터 구조 = 값들의 모음”이 아니라
+        <b>“주소와 포인터로 이어지는 메모리 위의 구조”</b>라는 감각을 갖는 것이 목표였습니다.
+        이 감각은 이후 Unity/C#에서 컬렉션을 설계할 때에도
+        <b>실제 메모리와 캐시, 참조 비용</b>까지 함께 고려하는 기반이 됩니다.
+      </p>
+    </section>
+
+    <!-- Section: pointer -->
+    <section id="pointer">
+      <span class="kicker">실험 01</span>
+      <h3>포인터: 값/주소/참조 차이의 시각적 검증</h3>
+      <p class="lead">
+        Swap 함수 3종(값·포인터·참조)으로 동일 목적(교환)을 달성하되,
+        <b>데이터가 어떤 경로로 흘러가는지</b>를 출력과 다이어그램으로 비교했습니다.
+      </p>
+      <p>
+        같은 “두 값을 바꾼다”는 동작이라도,
+        <b>값을 복사해서 넘기는지</b>, <b>주소를 넘겨 원본을 직접 바꾸는지</b>,
+        <b>참조 별칭을 사용하는지</b>에 따라 메모리 상에서 움직이는 데이터의 위치와 비용이 달라집니다.
+        실험을 통해 세 방식 모두 구현해 보고, 함수 호출 전·후 메모리 상태를 출력했습니다.
+      </p>
+      <ul class="ul">
+        <li>Call by value: 함수 내부에서만 값이 바뀌고, 원본은 그대로 유지됨</li>
+        <li>포인터 인자: 포인터가 가리키는 <b>원본 메모리</b>를 직접 수정</li>
+        <li>참조 인자: 구문은 간단하지만, 결국 포인터와 동일하게 원본을 다루는 별칭</li>
+      </ul>
+      <p>
+        이 과정을 통해 포인터와 참조를 “문법”이 아니라
+        <b>“주소를 직접 다루는 도구”</b>로 인식하게 되었고,
+        이후 자료구조(리스트, 트리)를 구현할 때 <b>주소 흐름</b>을 더 자연스럽게 따라갈 수 있게 됐습니다.
+      </p>
+
+      <div class="figure">
+        <div class="tiles" data-sec="pointer">
+          <figure class="tile"><img loading="lazy" src="assets_v3/pointer/pointer_001.png" alt="pointer_001.png" data-caption="pointer_001.png"><figcaption>pointer_001.png</figcaption></figure>
+          <figure class="tile"><img loading="lazy" src="assets_v3/pointer/pointer_002.png" alt="pointer_002.png" data-caption="pointer_002.png"><figcaption>pointer_002.png</figcaption></figure>
+          <figure class="tile"><img loading="lazy" src="assets_v3/pointer/pointer_003.png" alt="pointer_003.png" data-caption="pointer_003.png"><figcaption>pointer_003.png</figcaption></figure>
+          <figure class="tile allflow" data-action="expand"><div class="center">전체 흐름<br>보기</div></figure>
+        </div>
+        <div class="flow-wrap" id="flow-pointer">
+          <div class="backbar"><button class="back" data-action="collapse" data-sec="pointer">◀ 돌아가기</button></div>
+          <div class="gallery" data-group="g-pointer">
+            <!-- pointer thumbs (변경 없음) -->
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_001.png" alt="pointer_001.png" data-caption="pointer_001.png"><figcaption>pointer_001.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_002.png" alt="pointer_002.png" data-caption="pointer_002.png"><figcaption>pointer_002.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_003.png" alt="pointer_003.png" data-caption="pointer_003.png"><figcaption>pointer_003.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_004.png" alt="pointer_004.png" data-caption="pointer_004.png"><figcaption>pointer_004.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_005.png" alt="pointer_005.png" data-caption="pointer_005.png"><figcaption>pointer_005.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_006.png" alt="pointer_006.png" data-caption="pointer_006.png"><figcaption>pointer_006.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_007.png" alt="pointer_007.png" data-caption="pointer_007.png"><figcaption>pointer_007.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_008.png" alt="pointer_008.png" data-caption="pointer_008.png"><figcaption>pointer_008.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_009.png" alt="pointer_009.png" data-caption="pointer_009.png"><figcaption>pointer_009.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_010.png" alt="pointer_010.png" data-caption="pointer_010.png"><figcaption>pointer_010.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_011.png" alt="pointer_011.png" data-caption="pointer_011.png"><figcaption>pointer_011.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_012.png" alt="pointer_012.png" data-caption="pointer_012.png"><figcaption>pointer_012.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_013.png" alt="pointer_013.png" data-caption="pointer_013.png"><figcaption>pointer_013.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_014.png" alt="pointer_014.png" data-caption="pointer_014.png"><figcaption>pointer_014.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_015.png" alt="pointer_015.png" data-caption="pointer_015.png"><figcaption>pointer_015.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_016.png" alt="pointer_016.png" data-caption="pointer_016.png"><figcaption>pointer_016.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_017.png" alt="pointer_017.png" data-caption="pointer_017.png"><figcaption>pointer_017.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_018.png" alt="pointer_018.png" data-caption="pointer_018.png"><figcaption>pointer_018.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/pointer/pointer_019.png" alt="pointer_019.png" data-caption="pointer_019.png"><figcaption>pointer_019.png</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: array -->
+    <section id="array">
+      <span class="kicker">실험 02</span>
+      <h3>배열과 주소: 연속 메모리 & 주소 산술</h3>
+      <p class="lead">
+        배열 이름, 첫 원소의 주소, 포인터 변수의 관계를 출력으로 검증했습니다.
+        <code>(arr+i) == &amp;arr[i]</code>가 성립하며, 연속 메모리 특성으로 주소가 일정 간격으로 증가합니다.
+      </p>
+      <p>
+        실험 전에는 <code>arr</code>, <code>&amp;arr[0]</code>, <code>int* p = arr;</code>가
+        “대충 비슷한 것 같다” 정도의 이해였다면,
+        실제 주소를 찍어 보면서 <b>배열 이름이 곧 첫 원소의 주소</b>처럼 동작한다는 점과
+        인덱싱과 포인터 연산이 동일한 주소 산술 위에 있다는 점을 눈으로 확인했습니다.
+      </p>
+      <ul class="ul">
+        <li>연속 메모리이기 때문에, 각 원소의 주소가 타입 크기만큼 일정하게 증가</li>
+        <li><code>arr[i]</code>와 <code>*(arr + i)</code>가 완전히 같은 의미임을 출력으로 확인</li>
+        <li>“한 덩어리의 연속된 메모리”라는 관점에서, 배열과 포인터의 차이를 다시 정리</li>
+      </ul>
+      <p>
+        이 실험은 이후 <b>캐시 친화적인 데이터 구조</b>를 설계할 때,
+        “연속 자료구조(배열/벡터) vs 비연속 자료구조(리스트)”를 성능 관점에서 비교하는
+        사고 방식의 기반이 되었습니다.
+      </p>
+
+      <div class="figure">
+        <div class="tiles" data-sec="array">
+          <figure class="tile"><img loading="lazy" src="assets_v3/array/array_020.png" alt="array_020.png" data-caption="array_020.png"><figcaption>array_020.png</figcaption></figure>
+          <figure class="tile"><img loading="lazy" src="assets_v3/array/array_021.png" alt="array_021.png" data-caption="array_021.png"><figcaption>array_021.png</figcaption></figure>
+          <figure class="tile"><img loading="lazy" src="assets_v3/array/array_022.png" alt="array_022.png" data-caption="array_022.png"><figcaption>array_022.png</figcaption></figure>
+          <figure class="tile allflow" data-action="expand"><div class="center">전체 흐름<br>보기</div></figure>
+        </div>
+        <div class="flow-wrap" id="flow-array">
+          <div class="backbar"><button class="back" data-action="collapse" data-sec="array">◀ 돌아가기</button></div>
+          <div class="gallery" data-group="g-array">
+            <!-- array thumbs (변경 없음) -->
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_020.png" alt="array_020.png" data-caption="array_020.png"><figcaption>array_020.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_021.png" alt="array_021.png" data-caption="array_021.png"><figcaption>array_021.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_022.png" alt="array_022.png" data-caption="array_022.png"><figcaption>array_022.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_023.png" alt="array_023.png" data-caption="array_023.png"><figcaption>array_023.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_024.png" alt="array_024.png" data-caption="array_024.png"><figcaption>array_024.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_025.png" alt="array_025.png" data-caption="array_025.png"><figcaption>array_025.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_026.png" alt="array_026.png" data-caption="array_026.png"><figcaption>array_026.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_027.png" alt="array_027.png" data-caption="array_027.png"><figcaption>array_027.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/array/array_028.png" alt="array_028.png" data-caption="array_028.png"><figcaption>array_028.png</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: list -->
+    <section id="list">
+      <span class="kicker">실험 03</span>
+      <h3>단일 연결 리스트: 주소로 이어지는 사슬</h3>
+      <p class="lead">
+        동적할당된 노드(데이터+다음 주소)를 <b>링크</b>로 엮어 가변적 컬렉션을 구성했습니다.
+        삽입/삭제/탐색/출력의 주소 변화를 단계적으로 확인했습니다.
+      </p>
+      <p>
+        배열은 한 번 크기를 정하면 바꾸기 어렵다는 단점이 있습니다.
+        이에 비해 단일 연결 리스트는 노드를 동적으로 <code>new</code>로 만들고,
+        <b>포인터로 다음 노드를 가리키는 사슬</b> 구조를 사용해
+        필요할 때마다 앞·뒤에 노드를 붙일 수 있습니다.
+      </p>
+      <ul class="ul">
+        <li>노드 구조: <code>data</code> + <code>next</code> 포인터</li>
+        <li>삽입/삭제 시, 실제로 움직이는 것은 <b>포인터(주소)</b>뿐임을 그림과 출력으로 확인</li>
+        <li>잘못 연결하거나 해제하지 않으면, <b>메모리 누수·dangling 포인터</b>가 생길 수 있음을 체감</li>
+      </ul>
+      <p>
+        이 실험을 통해 “연결 리스트는 느리다/빠르다”라는 단편적인 인상이 아니라,
+        <b>왜 탐색은 O(n)이고, 삽입/삭제가 특정 위치에서는 유리한지</b>를
+        메모리 주소 관점에서 이해할 수 있었습니다.
+        또한 Unity에서 <b>연속 자료구조(List/Array)</b>를 우선 선택해야 하는 이유와,
+        정말 동적인 연결이 필요할 때만 링크 구조를 쓰는 이유를 더 설득력 있게 설명할 수 있게 됐습니다.
+      </p>
+
+      <div class="figure">
+        <div class="tiles" data-sec="list">
+          <figure class="tile"><img loading="lazy" src="assets_v3/list/list_029.png" alt="list_029.png" data-caption="list_029.png"><figcaption>list_029.png</figcaption></figure>
+          <figure class="tile"><img loading="lazy" src="assets_v3/list/list_030.png" alt="list_030.png" data-caption="list_030.png"><figcaption>list_030.png</figcaption></figure>
+          <figure class="tile"><img loading="lazy" src="assets_v3/list/list_031.png" alt="list_031.png" data-caption="list_031.png"><figcaption>list_031.png</figcaption></figure>
+          <figure class="tile allflow" data-action="expand"><div class="center">전체 흐름<br>보기</div></figure>
+        </div>
+        <div class="flow-wrap" id="flow-list">
+          <div class="backbar"><button class="back" data-action="collapse" data-sec="list">◀ 돌아가기</button></div>
+          <div class="gallery" data-group="g-list">
+            <!-- list thumbs (변경 없음) -->
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_029.png" alt="list_029.png" data-caption="list_029.png"><figcaption>list_029.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_030.png" alt="list_030.png" data-caption="list_030.png"><figcaption>list_030.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_031.png" alt="list_031.png" data-caption="list_031.png"><figcaption>list_031.png</figcaption></figure>
+            <!-- 이하 갤러리 원본 그대로 유지 -->
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_032.png" alt="list_032.png" data-caption="list_032.png"><figcaption>list_032.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_033.png" alt="list_033.png" data-caption="list_033.png"><figcaption>list_033.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_034.png" alt="list_034.png" data-caption="list_034.png"><figcaption>list_034.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_035.png" alt="list_035.png" data-caption="list_035.png"><figcaption>list_035.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_036.png" alt="list_036.png" data-caption="list_036.png"><figcaption>list_036.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_037.png" alt="list_037.png" data-caption="list_037.png"><figcaption>list_037.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_038.png" alt="list_038.png" data-caption="list_038.png"><figcaption>list_038.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_039.png" alt="list_039.png" data-caption="list_039.png"><figcaption>list_039.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_040.png" alt="list_040.png" data-caption="list_040.png"><figcaption>list_040.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_041.png" alt="list_041.png" data-caption="list_041.png"><figcaption>list_041.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_042.png" alt="list_042.png" data-caption="list_042.png"><figcaption>list_042.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_043.png" alt="list_043.png" data-caption="list_043.png"><figcaption>list_043.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_044.png" alt="list_044.png" data-caption="list_044.png"><figcaption>list_044.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_045.png" alt="list_045.png" data-caption="list_045.png"><figcaption>list_045.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_046.png" alt="list_046.png" data-caption="list_046.png"><figcaption>list_046.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_047.png" alt="list_047.png" data-caption="list_047.png"><figcaption>list_047.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_048.png" alt="list_048.png" data-caption="list_048.png"><figcaption>list_048.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_049.png" alt="list_049.png" data-caption="list_049.png"><figcaption>list_049.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_050.png" alt="list_050.png" data-caption="list_050.png"><figcaption>list_050.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_051.png" alt="list_051.png" data-caption="list_051.png"><figcaption>list_051.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_052.png" alt="list_052.png" data-caption="list_052.png"><figcaption>list_052.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_053.png" alt="list_053.png" data-caption="list_053.png"><figcaption>list_053.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_054.png" alt="list_054.png" data-caption="list_054.png"><figcaption>list_054.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_055.png" alt="list_055.png" data-caption="list_055.png"><figcaption>list_055.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_056.png" alt="list_056.png" data-caption="list_056.png"><figcaption>list_056.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_057.png" alt="list_057.png" data-caption="list_057.png"><figcaption>list_057.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_058.png" alt="list_058.png" data-caption="list_058.png"><figcaption>list_058.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_059.png" alt="list_059.png" data-caption="list_059.png"><figcaption>list_059.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_060.png" alt="list_060.png" data-caption="list_060.png"><figcaption>list_060.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_061.png" alt="list_061.png" data-caption="list_061.png"><figcaption>list_061.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_062.png" alt="list_062.png" data-caption="list_062.png"><figcaption>list_062.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_063.png" alt="list_063.png" data-caption="list_063.png"><figcaption>list_063.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_064.png" alt="list_064.png" data-caption="list_064.png"><figcaption>list_064.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_065.png" alt="list_065.png" data-caption="list_065.png"><figcaption>list_065.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_066.png" alt="list_066.png" data-caption="list_066.png"><figcaption>list_066.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_067.png" alt="list_067.png" data-caption="list_067.png"><figcaption>list_067.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_068.png" alt="list_068.png" data-caption="list_068.png"><figcaption>list_068.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_069.png" alt="list_069.png" data-caption="list_069.png"><figcaption>list_069.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_070.png" alt="list_070.png" data-caption="list_070.png"><figcaption>list_070.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_071.png" alt="list_071.png" data-caption="list_071.png"><figcaption>list_071.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_072.png" alt="list_072.png" data-caption="list_072.png"><figcaption>list_072.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_073.png" alt="list_073.png" data-caption="list_073.png"><figcaption>list_073.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_074.png" alt="list_074.png" data-caption="list_074.png"><figcaption>list_074.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_075.png" alt="list_075.png" data-caption="list_075.png"><figcaption>list_075.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_076.png" alt="list_076.png" data-caption="list_076.png"><figcaption>list_076.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_077.png" alt="list_077.png" data-caption="list_077.png"><figcaption>list_077.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_078.png" alt="list_078.png" data-caption="list_078.png"><figcaption>list_078.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_079.png" alt="list_079.png" data-caption="list_079.png"><figcaption>list_079.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_080.png" alt="list_080.png" data-caption="list_080.png"><figcaption>list_080.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_081.png" alt="list_081.png" data-caption="list_081.png"><figcaption>list_081.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_082.png" alt="list_082.png" data-caption="list_082.png"><figcaption>list_082.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_083.png" alt="list_083.png" data-caption="list_083.png"><figcaption>list_083.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_084.png" alt="list_084.png" data-caption="list_084.png"><figcaption>list_084.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_085.png" alt="list_085.png" data-caption="list_085.png"><figcaption>list_085.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_086.png" alt="list_086.png" data-caption="list_086.png"><figcaption>list_086.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_087.png" alt="list_087.png" data-caption="list_087.png"><figcaption>list_087.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_088.png" alt="list_088.png" data-caption="list_088.png"><figcaption>list_088.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_089.png" alt="list_089.png" data-caption="list_089.png"><figcaption>list_089.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_090.png" alt="list_090.png" data-caption="list_090.png"><figcaption>list_090.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_091.png" alt="list_091.png" data-caption="list_091.png"><figcaption>list_091.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_092.png" alt="list_092.png" data-caption="list_092.png"><figcaption>list_092.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_093.png" alt="list_093.png" data-caption="list_093.png"><figcaption>list_093.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_094.png" alt="list_094.png" data-caption="list_094.png"><figcaption>list_094.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_095.png" alt="list_095.png" data-caption="list_095.png"><figcaption>list_095.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_096.png" alt="list_096.png" data-caption="list_096.png"><figcaption>list_096.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_097.png" alt="list_097.png" data-caption="list_097.png"><figcaption>list_097.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/list/list_098.png" alt="list_098.png" data-caption="list_098.png"><figcaption>list_098.png</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: tree -->
+    <section id="tree">
+      <span class="kicker">실험 04</span>
+      <h3>이진 트리: 주소를 따라가는 분기 구조</h3>
+      <p class="lead">
+        부모가 자식을 <b>주소 포인터</b>로 가리키며,
+        순회는 주소를 재귀적으로 따라가는 과정임을 출력으로 확인했습니다.
+      </p>
+      <p>
+        트리는 단순한 “나무 모양 그림”이 아니라,
+        각 노드가 <b>왼쪽·오른쪽 자식의 주소를 가지고 있는 포인터 구조</b>입니다.
+        실험에서는 노드 구조를 정의하고, 중위/전위/후위 순회 함수를 작성해
+        실제 출력 순서가 어떻게 달라지는지 확인했습니다.
+      </p>
+      <ul class="ul">
+        <li>노드 구조: <code>data</code> + <code>left</code> 포인터 + <code>right</code> 포인터</li>
+        <li>재귀 호출을 통해, 주소를 따라 내려가며 서브트리를 방문하는 순회 방식 이해</li>
+        <li>트리 구조가 검색/정렬/공간 분할(쿼드트리, BSP 등)로 확장될 수 있다는 감각 확보</li>
+      </ul>
+      <p>
+        이 실험을 통해 트리를 단순히 시험용 개념이 아니라,
+        <b>실제 게임 개발에서 자주 등장하는 계층 구조</b>
+        (예: UI 계층, 씬 그래프, 상태 트리, AI 의사결정 트리)의 기반으로 바라보게 되었습니다.
+      </p>
+
+       <div class="figure">
+        <div class="tiles" data-sec="tree">
+          <figure class="tile"><img loading="lazy" src="assets_v3/tree/tree_099.png" alt="tree_099.png" data-caption="tree_099.png"><figcaption>tree_099.png</figcaption></figure>
+          <figure class="tile"><img loading="lazy" src="assets_v3/tree/tree_100.png" alt="tree_100.png" data-caption="tree_100.png"><figcaption>tree_100.png</figcaption></figure>
+          <figure class="tile"><img loading="lazy" src="assets_v3/tree/tree_101.png" alt="tree_101.png" data-caption="tree_101.png"><figcaption>tree_101.png</figcaption></figure>
+          <figure class="tile allflow" data-action="expand"><div class="center">전체 흐름<br>보기</div></figure>
+        </div>
+        <div class="flow-wrap" id="flow-tree">
+          <div class="backbar"><button class="back" data-action="collapse" data-sec="tree">◀ 돌아가기</button></div>
+          <div class="gallery" data-group="g-tree">
+            <!-- tree thumbs (변경 없음) -->
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_099.png" alt="tree_099.png" data-caption="tree_099.png"><figcaption>tree_099.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_100.png" alt="tree_100.png" data-caption="tree_100.png"><figcaption>tree_100.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_101.png" alt="tree_101.png" data-caption="tree_101.png"><figcaption>tree_101.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_102.png" alt="tree_102.png" data-caption="tree_102.png"><figcaption>tree_102.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_103.png" alt="tree_103.png" data-caption="tree_103.png"><figcaption>tree_103.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_104.png" alt="tree_104.png" data-caption="tree_104.png"><figcaption>tree_104.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_105.png" alt="tree_105.png" data-caption="tree_105.png"><figcaption>tree_105.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_106.png" alt="tree_106.png" data-caption="tree_106.png"><figcaption>tree_106.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_107.png" alt="tree_107.png" data-caption="tree_107.png"><figcaption>tree_107.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_108.png" alt="tree_108.png" data-caption="tree_108.png"><figcaption>tree_108.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_109.png" alt="tree_109.png" data-caption="tree_109.png"><figcaption>tree_109.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_110.png" alt="tree_110.png" data-caption="tree_110.png"><figcaption>tree_110.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_111.png" alt="tree_111.png" data-caption="tree_111.png"><figcaption>tree_111.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_112.png" alt="tree_112.png" data-caption="tree_112.png"><figcaption>tree_112.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_113.png" alt="tree_113.png" data-caption="tree_113.png"><figcaption>tree_113.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_114.png" alt="tree_114.png" data-caption="tree_114.png"><figcaption>tree_114.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_115.png" alt="tree_115.png" data-caption="tree_115.png"><figcaption>tree_115.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_116.png" alt="tree_116.png" data-caption="tree_116.png"><figcaption>tree_116.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_117.png" alt="tree_117.png" data-caption="tree_117.png"><figcaption>tree_117.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_118.png" alt="tree_118.png" data-caption="tree_118.png"><figcaption>tree_118.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_119.png" alt="tree_119.png" data-caption="tree_119.png"><figcaption>tree_119.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_120.png" alt="tree_120.png" data-caption="tree_120.png"><figcaption>tree_120.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_121.png" alt="tree_121.png" data-caption="tree_121.png"><figcaption>tree_121.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_122.png" alt="tree_122.png" data-caption="tree_122.png"><figcaption>tree_122.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_123.png" alt="tree_123.png" data-caption="tree_123.png"><figcaption>tree_123.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_124.png" alt="tree_124.png" data-caption="tree_124.png"><figcaption>tree_124.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_125.png" alt="tree_125.png" data-caption="tree_125.png"><figcaption>tree_125.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_126.png" alt="tree_126.png" data-caption="tree_126.png"><figcaption>tree_126.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_127.png" alt="tree_127.png" data-caption="tree_127.png"><figcaption>tree_127.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_128.png" alt="tree_128.png" data-caption="tree_128.png"><figcaption>tree_128.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_129.png" alt="tree_129.png" data-caption="tree_129.png"><figcaption>tree_129.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_130.png" alt="tree_130.png" data-caption="tree_130.png"><figcaption>tree_130.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_131.png" alt="tree_131.png" data-caption="tree_131.png"><figcaption>tree_131.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_132.png" alt="tree_132.png" data-caption="tree_132.png"><figcaption>tree_132.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_133.png" alt="tree_133.png" data-caption="tree_133.png"><figcaption>tree_133.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_134.png" alt="tree_134.png" data-caption="tree_134.png"><figcaption>tree_134.png</figcaption></figure>
+            <figure class="thumb"><img loading="lazy" src="assets_v3/tree/tree_135.png" alt="tree_135.png" data-caption="tree_135.png"><figcaption>tree_135.png</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="unity">
+      <span class="kicker">결론 & 적용</span>
+      <h3>결론: 이해를 구조로. 구조를 시스템으로.</h3>
+      <div class="grid cols-2">
+        <div class="figure">
+          <b>요약</b>
+          <ul class="ul">
+            <li>포인터 실험 → “값/주소/구조” 사고 확립</li>
+            <li>배열/연결리스트/트리 → “데이터 흐름 = 주소 흐름” 체득</li>
+            <li>Unity 적용: FSM·SkillGraph·ResourceSystem 설계 사고로 확장</li>
+          </ul>
+        </div>
+        <div class="card">
+          <b>성과</b>
+          <ul class="ul">
+          <li>메모리를 시각적으로 그려보는 과정에서 자료구조와 메모리의 흐름에 대해 이전보다 명확히 알 수 있게 되었습니다.</li> 
+          <li>또한, 스택 구조나 이진트리에서의 데이터 흐름을 직접 쫓으며 컴퓨터의 동작 구조에 대해 이전보다 자세히 알게 되었습니다.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>v4 · 대표 요약 ↔ 전체 증거 토글 · assets_v3 기반</footer>
+  </main>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="close" aria-label="닫기">✕</button>
+  <div class="nav"><button class="prev" aria-label="이전">‹</button><button class="next" aria-label="다음">›</button></div>
+  <div class="inner"><img alt="" /><div class="caption"></div></div>
+</div>
+
+<script>
+// Expand/collapse per section
+document.querySelectorAll('.tiles').forEach(row=>{
+  const sec = row.dataset.sec;
+  const flow = document.getElementById('flow-'+sec);
+  row.addEventListener('click', (e)=>{
+    const tile = e.target.closest('.tile.allflow');
+    if(!tile) return;
+    row.style.display='none';
+    flow.classList.add('open');
+    flow.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+document.querySelectorAll('.backbar .back').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const sec = btn.dataset.sec;
+    const row = document.querySelector('.tiles[data-sec="'+sec+'"]');
+    const flow = document.getElementById('flow-'+sec);
+    flow.classList.remove('open');
+    row.style.display='grid';
+    row.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+// Lightbox (grouped)
+(function(){
+  const lb = document.getElementById('lightbox');
+  const img = lb.querySelector('img');
+  const cap = lb.querySelector('.caption');
+  const prev = lb.querySelector('.prev');
+  const next = lb.querySelector('.next');
+  const close = lb.querySelector('.close');
+  let group = []; let idx = -1;
+  function open(items, i){ group = items; idx = i; set(); lb.classList.add('open'); lb.setAttribute('aria-hidden','false'); }
+  function set(){ const el=group[idx]; img.src=el.src; img.alt=el.alt||''; cap.textContent=el.dataset.caption||''; }
+  function move(d){ if(!group.length) return; idx=(idx+d+group.length)%group.length; set(); }
+  function closeLB(){ lb.classList.remove('open'); lb.setAttribute('aria-hidden','true'); img.src=''; cap.textContent=''; }
+  document.querySelectorAll('.gallery').forEach(gal=>{ const items=Array.from(gal.querySelectorAll('img')); items.forEach((t,i)=> t.addEventListener('click', ()=>open(items,i))); });
+  prev.addEventListener('click', ()=>move(-1)); next.addEventListener('click', ()=>move(1)); close.addEventListener('click', closeLB);
+  lb.addEventListener('click', (e)=>{ if(e.target===lb) closeLB(); });
+  document.addEventListener('keydown', (e)=>{ if(!lb.classList.contains('open')) return; if(e.key==='Escape') closeLB(); if(e.key==='ArrowLeft') move(-1); if(e.key==='ArrowRight') move(1); });
+})();
+</script>
+</body>
+</html>
